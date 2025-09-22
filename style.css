@@ -15,13 +15,19 @@ body {
 }
 
 .square {
+  position: relative;
   width: 60px;
   height: 60px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  font-size: 36px;
-  cursor: pointer;
+  align-items: center;
+}
+
+.square img.piece {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 .dark {
