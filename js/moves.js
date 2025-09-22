@@ -77,3 +77,4 @@ function slideMoves(board, r, c, dirs, isW) {
   }
   return res;
 }
+ 
