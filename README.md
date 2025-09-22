@@ -8,7 +8,7 @@ The structure allows you to expand with proper rules and a Minimax AI.
 - `style.css` - styling for chessboard
 - `script.js` - game loop & interaction
 - `js/board.js` - board setup & rendering
-- `js/moves.js` - move generation
+- `js/moves.js` - move generation 
 - `js/ai.js` - AI logic (random for now)
 - `assets/` - chess piece images or icons (optional)
 
