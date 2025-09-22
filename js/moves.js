@@ -15,16 +15,27 @@ function getLegalMoves(board, r, c) {
 
   switch (piece.toLowerCase()) {
     case "p":
-      const dir = isW ? -1 : 1;
-      if (board[r+dir] && board[r+dir][c] === ".") {
-        moves.push([r+dir, c]);
-      }
-      [-1,1].forEach(dc => {
-        if (board[r+dir] && board[r+dir][c+dc] && board[r+dir][c+dc] !== "." && isWhite(board[r+dir][c+dc]) !== isW) {
-          moves.push([r+dir, c+dc]);
-        }
-      });
-      break;
+  const dir = isW ? -1 : 1;
+  const startRow = isW ? 6 : 1;
+
+  // 1-square move
+  if (board[r+dir] && board[r+dir][c] === ".") {
+    moves.push([r+dir, c]);
+
+    // 2-square move from starting row
+    if (r === startRow && board[r+2*dir][c] === ".") {
+      moves.push([r+2*dir, c]);
+    }
+  }
+
+  // captures
+  [-1,1].forEach(dc => {
+    if (board[r+dir] && board[r+dir][c+dc] && board[r+dir][c+dc] !== "." && isWhite(board[r+dir][c+dc]) !== isW) {
+      moves.push([r+dir, c+dc]);
+    }
+  });
+  break;
+
     case "r":
       moves.push(...slideMoves(board, r, c, [[1,0],[-1,0],[0,1],[0,-1]], isW));
       break;
