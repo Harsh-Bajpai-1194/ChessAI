@@ -31,3 +31,4 @@ function handleClick(row, col) {
     selected = null;
   }
 }
+ 
