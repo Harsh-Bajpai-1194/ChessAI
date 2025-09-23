@@ -30,6 +30,18 @@ body {
   pointer-events: none;
 }
 
+.square.selected {
+  outline: 3px solid blue;
+}
+.square.highlight-move {
+  outline: 3px solid rgba(0, 0, 255, 0.5); /* lighter blue for moves */
+}
+
+.square.highlight-capture {
+  outline: 3px solid red; /* red border for captures */
+}
+
+
 .dark {
   background: #769656;
 }

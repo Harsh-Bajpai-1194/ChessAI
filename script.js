@@ -8,6 +8,7 @@ function handleClick(row, col) {
   if (!selected) {
     if (board[row][col] && isWhite(board[row][col]) === isWhiteTurn) {
       selected = { row, col };
+      highlightedMoves = getLegalMoves(board, row, col);
     }
   } else {
     const moves = getLegalMoves(board, selected.row, selected.col);
@@ -15,6 +16,8 @@ function handleClick(row, col) {
     if (found) {
       movePiece(board, selected.row, selected.col, row, col);
       isWhiteTurn = !isWhiteTurn;
+      selected = null;
+      highlightedMoves = [];
       renderBoard(board);
 
       if (!isWhiteTurn) {
@@ -27,8 +30,11 @@ function handleClick(row, col) {
           }
         }, 300);
       }
+      return;
     }
+    // if clicked invalid square → reset selection
     selected = null;
+    highlightedMoves = [];
   }
+  renderBoard(board);
 }
- 
