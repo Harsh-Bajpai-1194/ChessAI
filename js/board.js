@@ -38,14 +38,14 @@ function pieceToImage(piece) {
     "R": "images/rook-w.svg",
     "N": "images/knight-w.svg",
     "B": "images/bishop-w.svg",
-    "Q": "images/amazon-w.svg", // replace with queen-w.svg if you add it
+    "Q": "images/amazon-w.svg", 
     "K": "images/king-w.svg",
 
     "p": "images/pawn-b.svg",
     "r": "images/rook-b.svg",
     "n": "images/knight-b.svg",
     "b": "images/bishop-b.svg",
-    "q": "images/amazon-b.svg", // replace with queen-b.svg if you add it
+    "q": "images/amazon-b.svg", 
     "k": "images/king-b.svg"
   };
   return map[piece] || "";
