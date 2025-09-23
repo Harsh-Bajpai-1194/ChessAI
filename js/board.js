@@ -19,18 +19,34 @@ function renderBoard(board) {
       const sq = document.createElement("div");
       sq.className = "square " + ((r + c) % 2 === 0 ? "light" : "dark");
       sq.onclick = () => handleClick(r, c);
+
       if (board[r][c] !== ".") {
-        sq.textContent = pieceToChar(board[r][c]);
+        const img = document.createElement("img");
+        img.src = pieceToImage(board[r][c]);
+        img.className = "piece";
+        sq.appendChild(img);
       }
+
       container.appendChild(sq);
     }
   }
 }
 
-function pieceToChar(piece) {
+function pieceToImage(piece) {
   const map = {
-    "P": "♙", "R": "♖", "N": "♘", "B": "♗", "Q": "♕", "K": "♔",
-    "p": "♟️", "r": "♜", "n": "♞", "b": "♝", "q": "♛", "k": "♚"
+    "P": "images/pawn-w.svg",
+    "R": "images/rook-w.svg",
+    "N": "images/knight-w.svg",
+    "B": "images/bishop-w.svg",
+    "Q": "images/amazon-w.svg", // replace with queen-w.svg if you add it
+    "K": "images/king-w.svg",
+
+    "p": "images/pawn-b.svg",
+    "r": "images/rook-b.svg",
+    "n": "images/knight-b.svg",
+    "b": "images/bishop-b.svg",
+    "q": "images/amazon-b.svg", // replace with queen-b.svg if you add it
+    "k": "images/king-b.svg"
   };
   return map[piece] || "";
 }
