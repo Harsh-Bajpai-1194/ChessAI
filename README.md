@@ -7,10 +7,8 @@ The structure allows you to expand with proper rules and a Minimax AI.
 - `index.html` - main entry point
 - `style.css` - styling for chessboard
 - `script.js` - game loop & interaction
-- `js/board.js` - board setup & rendering
-- `js/moves.js` - move generation 
-- `js/ai.js` - AI logic (random for now)
-- `assets/` - chess piece images or icons (optional)
+- `chess.js` - board setup & rendering, move generation + AI logic (random for now)
+- `images/` - chess piece images or icons 
 
 ## How to Run
 1. Download this repository or ZIP.
