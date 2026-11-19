@@ -5,6 +5,8 @@ let selected = null;
 let isWhiteTurn = true;
 
 function handleClick(row, col) {
+  if (!isWhiteTurn) return;
+
   if (!selected) {
     if (board[row][col] && board[row][col] !== "." && isWhite(board[row][col]) === isWhiteTurn) {
       selected = { row, col };

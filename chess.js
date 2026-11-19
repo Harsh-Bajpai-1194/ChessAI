@@ -314,8 +314,6 @@ function findAllMoves(board, isWhiteTurn) {
 }
 
 function minimax(board, depth, alpha, beta, maximizing) {
-  if (depth === 0) return { score: evaluate(board) };
-
   const moves = findAllMoves(board, maximizing);
   if (moves.length === 0) {
     if (isKingInCheck(board, maximizing)) {
@@ -323,6 +321,8 @@ function minimax(board, depth, alpha, beta, maximizing) {
     }
     return { score: 0 }; // stalemate
   }
+
+  if (depth === 0) return { score: evaluate(board) };
 
   let bestMove = null;
 

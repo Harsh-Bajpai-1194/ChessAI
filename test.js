@@ -213,3 +213,26 @@ test("AI move generation uses only legal moves", () => {
   movePiece(sim, bestMove.from[0], bestMove.from[1], bestMove.to[0], bestMove.to[1]);
   assert.strictEqual(isKingInCheck(sim, false), false);
 });
+
+test("minimax checks terminal outcomes before depth-0 cutoff", () => {
+  // Checkmate position: Black king a8 (0, 0), white queen b7 (1, 1), white king c6 (2, 2)
+  const mateBoard = createEmptyBoard();
+  mateBoard[0][0] = "k";
+  mateBoard[1][1] = "Q";
+  mateBoard[2][2] = "K";
+
+  // Black to move (maximizing = false), should evaluate to 99999 (White win / Black loss) at depth 0
+  const mateEval = minimax(mateBoard, 0, -Infinity, Infinity, false);
+  assert.strictEqual(mateEval.score, 99999, "Terminal checkmate should be recognized at depth 0");
+
+  // Stalemate position: Black king a8 (0, 0), white queen b6 (2, 1), white king c6 (2, 2)
+  const staleBoard = createEmptyBoard();
+  staleBoard[0][0] = "k";
+  staleBoard[2][1] = "Q";
+  staleBoard[2][2] = "K";
+
+  // Black has 0 moves and is not in check, should evaluate to 0 (draw) at depth 0
+  const staleEval = minimax(staleBoard, 0, -Infinity, Infinity, false);
+  assert.strictEqual(staleEval.score, 0, "Terminal stalemate should be recognized at depth 0");
+});
+
