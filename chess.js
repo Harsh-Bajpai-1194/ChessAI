@@ -21,6 +21,7 @@ function initialBoard() {
 
 function renderBoard(board) {
   const container = document.getElementById("chessboard");
+  if (!container) return;
   container.innerHTML = "";
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
@@ -74,6 +75,7 @@ function pieceToImage(piece) {
 }
 
 function isWhite(piece) {
+  if (!piece || piece === ".") return false;
   return piece === piece.toUpperCase();
 }
 
@@ -83,9 +85,109 @@ function movePiece(board, r1, c1, r2, c2) {
 }
 
 // ------------------------
+// King Safety & Check Detection
+// ------------------------
+function findKing(board, isWhiteKing) {
+  const target = isWhiteKing ? "K" : "k";
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (board[r][c] === target) {
+        return [r, c];
+      }
+    }
+  }
+  return null;
+}
+
+function isSquareAttacked(board, r, c, byWhite) {
+  // 1. Pawns:
+  // If attacking player is White, pawns move up (row - 1), so they attack (r, c) from (r + 1, c ± 1).
+  // If attacking player is Black, pawns move down (row + 1), so they attack (r, c) from (r - 1, c ± 1).
+  const pawnDir = byWhite ? 1 : -1;
+  const pawnChar = byWhite ? "P" : "p";
+  const pr = r + pawnDir;
+  if (pr >= 0 && pr < 8) {
+    if (c - 1 >= 0 && board[pr][c - 1] === pawnChar) return true;
+    if (c + 1 < 8 && board[pr][c + 1] === pawnChar) return true;
+  }
+
+  // 2. Knights
+  const knightChar = byWhite ? "N" : "n";
+  const knightOffsets = [
+    [2, 1], [2, -1], [-2, 1], [-2, -1],
+    [1, 2], [1, -2], [-1, 2], [-1, -2]
+  ];
+  for (const [dr, dc] of knightOffsets) {
+    const nr = r + dr;
+    const nc = c + dc;
+    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+      if (board[nr][nc] === knightChar) return true;
+    }
+  }
+
+  // 3. King (adjacent squares)
+  const kingChar = byWhite ? "K" : "k";
+  const kingOffsets = [
+    [1, 0], [-1, 0], [0, 1], [0, -1],
+    [1, 1], [1, -1], [-1, 1], [-1, -1]
+  ];
+  for (const [dr, dc] of kingOffsets) {
+    const kr = r + dr;
+    const kc = c + dc;
+    if (kr >= 0 && kr < 8 && kc >= 0 && kc < 8) {
+      if (board[kr][kc] === kingChar) return true;
+    }
+  }
+
+  // 4. Straight line sliders: Rooks & Queens
+  const straightDirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  const rookChar = byWhite ? "R" : "r";
+  const queenChar = byWhite ? "Q" : "q";
+  for (const [dr, dc] of straightDirs) {
+    let rr = r + dr;
+    let cc = c + dc;
+    while (rr >= 0 && rr < 8 && cc >= 0 && cc < 8) {
+      const piece = board[rr][cc];
+      if (piece !== ".") {
+        if (piece === rookChar || piece === queenChar) return true;
+        break; // blocked by any piece
+      }
+      rr += dr;
+      cc += dc;
+    }
+  }
+
+  // 5. Diagonal sliders: Bishops & Queens
+  const diagDirs = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
+  const bishopChar = byWhite ? "B" : "b";
+  for (const [dr, dc] of diagDirs) {
+    let rr = r + dr;
+    let cc = c + dc;
+    while (rr >= 0 && rr < 8 && cc >= 0 && cc < 8) {
+      const piece = board[rr][cc];
+      if (piece !== ".") {
+        if (piece === bishopChar || piece === queenChar) return true;
+        break; // blocked by any piece
+      }
+      rr += dr;
+      cc += dc;
+    }
+  }
+
+  return false;
+}
+
+function isKingInCheck(board, isWhiteKing) {
+  const kingPos = findKing(board, isWhiteKing);
+  if (!kingPos) return false;
+  return isSquareAttacked(board, kingPos[0], kingPos[1], !isWhiteKing);
+}
+
+// ------------------------
 // moves.js
 // ------------------------
-function getLegalMoves(board, r, c) {
+function getPseudoLegalMoves(board, r, c) {
+  if (r < 0 || r >= 8 || c < 0 || c >= 8) return [];
   const piece = board[r][c];
   if (!piece || piece === ".") return [];
   const moves = [];
@@ -105,43 +207,58 @@ function getLegalMoves(board, r, c) {
       const startRow = isW ? 6 : 1;
 
       // 1-square move
-      if (board[r+dir] && board[r+dir][c] === ".") {
-        moves.push([r+dir, c]);
+      if (board[r + dir] && board[r + dir][c] === ".") {
+        moves.push([r + dir, c]);
         // 2-square move
-        if (r === startRow && board[r+2*dir][c] === ".") {
-          moves.push([r+2*dir, c]);
+        if (r === startRow && board[r + 2 * dir] && board[r + 2 * dir][c] === ".") {
+          moves.push([r + 2 * dir, c]);
         }
       }
 
       // captures
-      [-1,1].forEach(dc => {
-        if (board[r+dir] && board[r+dir][c+dc] && board[r+dir][c+dc] !== "." && isWhite(board[r+dir][c+dc]) !== isW) {
-          moves.push([r+dir, c+dc]);
+      [-1, 1].forEach(dc => {
+        if (board[r + dir] && board[r + dir][c + dc] && board[r + dir][c + dc] !== "." && isWhite(board[r + dir][c + dc]) !== isW) {
+          moves.push([r + dir, c + dc]);
         }
       });
       break;
 
     case "r":
-      moves.push(...slideMoves(board, r, c, [[1,0],[-1,0],[0,1],[0,-1]], isW));
+      moves.push(...slideMoves(board, r, c, [[1, 0], [-1, 0], [0, 1], [0, -1]], isW));
       break;
     case "b":
-      moves.push(...slideMoves(board, r, c, [[1,1],[1,-1],[-1,1],[-1,-1]], isW));
+      moves.push(...slideMoves(board, r, c, [[1, 1], [1, -1], [-1, 1], [-1, -1]], isW));
       break;
     case "q":
-      moves.push(...slideMoves(board, r, c, [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]], isW));
+      moves.push(...slideMoves(board, r, c, [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]], isW));
       break;
     case "n":
-      [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]].forEach(([dr,dc])=>{
-        addMove(r+dr,c+dc);
+      [[2, 1], [2, -1], [-2, 1], [-2, -1], [1, 2], [1, -2], [-1, 2], [-1, -2]].forEach(([dr, dc]) => {
+        addMove(r + dr, c + dc);
       });
       break;
     case "k":
-      [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc])=>{
-        addMove(r+dr,c+dc);
+      [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([dr, dc]) => {
+        addMove(r + dr, c + dc);
       });
       break;
   }
   return moves;
+}
+
+function getLegalMoves(board, r, c) {
+  if (r < 0 || r >= 8 || c < 0 || c >= 8) return [];
+  const piece = board[r][c];
+  if (!piece || piece === ".") return [];
+  const isW = isWhite(piece);
+  const pseudoMoves = getPseudoLegalMoves(board, r, c);
+
+  // Filter moves to ensure player's king is not left or placed in check
+  return pseudoMoves.filter(([toR, toC]) => {
+    const simBoard = cloneBoard(board);
+    movePiece(simBoard, r, c, toR, toC);
+    return !isKingInCheck(simBoard, isW);
+  });
 }
 
 function slideMoves(board, r, c, dirs, isW) {
@@ -150,9 +267,9 @@ function slideMoves(board, r, c, dirs, isW) {
     let rr = r + dr, cc = c + dc;
     while (rr >= 0 && rr < 8 && cc >= 0 && cc < 8) {
       if (board[rr][cc] === ".") {
-        res.push([rr,cc]);
+        res.push([rr, cc]);
       } else {
-        if (isWhite(board[rr][cc]) !== isW) res.push([rr,cc]);
+        if (isWhite(board[rr][cc]) !== isW) res.push([rr, cc]);
         break;
       }
       rr += dr;
@@ -169,8 +286,8 @@ function evaluate(board) {
   const values = { p: -1, n: -3, b: -3, r: -5, q: -9, k: -1000,
                    P: 1, N: 3, B: 3, R: 5, Q: 9, K: 1000 };
   let score = 0;
-  for (let r=0; r<8; r++) {
-    for (let c=0; c<8; c++) {
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
       if (board[r][c] !== ".") score += values[board[r][c]] || 0;
     }
   }
@@ -183,12 +300,12 @@ function cloneBoard(board) {
 
 function findAllMoves(board, isWhiteTurn) {
   const moves = [];
-  for (let r=0; r<8; r++) {
-    for (let c=0; c<8; c++) {
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
       if (board[r][c] !== "." && isWhite(board[r][c]) === isWhiteTurn) {
         const legal = getLegalMoves(board, r, c);
-        legal.forEach(([rr,cc]) => {
-          moves.push({from:[r,c], to:[rr,cc]});
+        legal.forEach(([rr, cc]) => {
+          moves.push({ from: [r, c], to: [rr, cc] });
         });
       }
     }
@@ -197,10 +314,15 @@ function findAllMoves(board, isWhiteTurn) {
 }
 
 function minimax(board, depth, alpha, beta, maximizing) {
-  if (depth === 0) return { score: evaluate(board) };
-
   const moves = findAllMoves(board, maximizing);
-  if (moves.length === 0) return { score: evaluate(board) };
+  if (moves.length === 0) {
+    if (isKingInCheck(board, maximizing)) {
+      return { score: maximizing ? -99999 : 99999 };
+    }
+    return { score: 0 }; // stalemate
+  }
+
+  if (depth === 0) return { score: evaluate(board) };
 
   let bestMove = null;
 
@@ -209,7 +331,7 @@ function minimax(board, depth, alpha, beta, maximizing) {
     for (const m of moves) {
       const b2 = cloneBoard(board);
       movePiece(b2, m.from[0], m.from[1], m.to[0], m.to[1]);
-      const evalObj = minimax(b2, depth-1, alpha, beta, false);
+      const evalObj = minimax(b2, depth - 1, alpha, beta, false);
       if (evalObj.score > maxEval) {
         maxEval = evalObj.score;
         bestMove = m;
@@ -223,7 +345,7 @@ function minimax(board, depth, alpha, beta, maximizing) {
     for (const m of moves) {
       const b2 = cloneBoard(board);
       movePiece(b2, m.from[0], m.from[1], m.to[0], m.to[1]);
-      const evalObj = minimax(b2, depth-1, alpha, beta, true);
+      const evalObj = minimax(b2, depth - 1, alpha, beta, true);
       if (evalObj.score < minEval) {
         minEval = evalObj.score;
         bestMove = m;
@@ -237,4 +359,25 @@ function minimax(board, depth, alpha, beta, maximizing) {
 
 function findBestMove(board, depth) {
   return minimax(board, depth, -Infinity, Infinity, false).move;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    initialBoard,
+    renderBoard,
+    pieceToImage,
+    isWhite,
+    movePiece,
+    findKing,
+    isSquareAttacked,
+    isKingInCheck,
+    getPseudoLegalMoves,
+    getLegalMoves,
+    slideMoves,
+    evaluate,
+    cloneBoard,
+    findAllMoves,
+    minimax,
+    findBestMove
+  };
 }

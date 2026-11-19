@@ -1,0 +1,15 @@
+{
+  "name": "chess-ai",
+  "version": "1.0.0",
+  "description": "Chess game in HTML, CSS, and JavaScript with AI",
+  "scripts": {
+    "test": "node --test test.js"
+  },
+  "keywords": [
+    "chess",
+    "chess-ai",
+    "minimax"
+  ],
+  "author": "",
+  "license": "ISC"
+}

@@ -5,9 +5,12 @@ let selected = null;
 let isWhiteTurn = true;
 
 function handleClick(row, col) {
+  if (!isWhiteTurn) return;
+
   if (!selected) {
-    if (board[row][col] && isWhite(board[row][col]) === isWhiteTurn) {
+    if (board[row][col] && board[row][col] !== "." && isWhite(board[row][col]) === isWhiteTurn) {
       selected = { row, col };
+      selectedSquare = { r: row, c: col };
       highlightedMoves = getLegalMoves(board, row, col);
     }
   } else {
@@ -17,6 +20,7 @@ function handleClick(row, col) {
       movePiece(board, selected.row, selected.col, row, col);
       isWhiteTurn = !isWhiteTurn;
       selected = null;
+      selectedSquare = null;
       highlightedMoves = [];
       renderBoard(board);
 
@@ -32,8 +36,19 @@ function handleClick(row, col) {
       }
       return;
     }
+
+    // If clicked another friendly piece, switch selection directly
+    if (board[row][col] && board[row][col] !== "." && isWhite(board[row][col]) === isWhiteTurn) {
+      selected = { row, col };
+      selectedSquare = { r: row, c: col };
+      highlightedMoves = getLegalMoves(board, row, col);
+      renderBoard(board);
+      return;
+    }
+
     // if clicked invalid square → reset selection
     selected = null;
+    selectedSquare = null;
     highlightedMoves = [];
   }
   renderBoard(board);
